@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<project>
+
+	<property name="dist.jar.name" value="ironrhino-search-${version}.jar" />
+	<property name="dist.jar-sources.name" value="ironrhino-search-${version}-sources.jar" />
+	<property name="dist.jar.includes" value="org/ironrhino/core/search/,resources/spring/applicationContext-search.xml" />
+
+	<target name="pre-jar">
+		<delete file="${target.dir}/${dist.jar.name}" />
+		<delete file="${target.dir}/${dist.jar-sources.name}" />
+	</target>
+
+	<target name="post-jar">
+		<jar jarfile="${target.dir}/${dist.jar.name}" basedir="${classes.dir}" includes="${dist.jar.includes}" />
+		<jar jarfile="${target.dir}/${dist.jar-sources.name}" basedir="${src.dir}" includes="${dist.jar.includes}" />
+	</target>
+
+</project>
