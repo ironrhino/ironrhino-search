@@ -44,10 +44,6 @@ public class ElasticSearchService<T> implements SearchService<T> {
 	@Autowired
 	private IndexManager indexManager;
 
-	public SearchRequestBuilder prepareSearch() {
-		return client.prepareSearch(new String[] { indexManager.getIndexName() });
-	}
-
 	@Override
 	public ResultPage<T> search(ResultPage<T> resultPage) {
 		return search(resultPage, null);
@@ -147,12 +143,16 @@ public class ElasticSearchService<T> implements SearchService<T> {
 	private static Pattern wildcardQueryPattern = Pattern.compile("\\w+:.*[\\?\\*].*");
 
 	private SearchRequestBuilder criteria2builder(SearchCriteria criteria) {
-		String[] indices = criteria.getIndices();
-		if (indices == null || indices.length == 0)
-			indices = new String[] { indexManager.getIndexName() };
+		String[] indices = new String[0];
+		String[] types = criteria.getTypes();
+		if (indices == null || indices.length == 0 && types != null && types.length > 0) {
+			indices = new String[types.length];
+			for (int i = 0; i < types.length; i++) {
+				indices[i] = indexManager.determineIndexName(types[i]);
+			}
+		}
 		SearchRequestBuilder srb = client.prepareSearch(indices);
 		srb.setTimeout(new TimeValue(10, TimeUnit.SECONDS));
-		String[] types = criteria.getTypes();
 		if (types != null && types.length > 0)
 			srb.setTypes(types);
 		QueryBuilder qb = null;

@@ -9,13 +9,13 @@ import org.ironrhino.core.model.Persistable;
 @SuppressWarnings("rawtypes")
 public interface IndexManager {
 
-	public String getIndexName();
-
 	public Object searchHitToEntity(SearchHit sh) throws Exception;
 
 	public ListenableActionFuture<IndexResponse> index(Persistable entity);
 
 	public ListenableActionFuture<DeleteResponse> delete(Persistable entity);
+
+	public String determineIndexName(String type);
 
 	public void rebuild();
 

@@ -48,7 +48,6 @@ import org.ironrhino.core.util.ReflectionUtils;
 import org.slf4j.Logger;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -59,11 +58,10 @@ import com.fasterxml.jackson.databind.introspect.JacksonAnnotationIntrospector;
 @Component
 public class IndexManagerImpl implements IndexManager {
 
+	private static final String INDEX_PREFIX = "index_";
+
 	@Autowired
 	private Logger logger;
-
-	@Value("${indexManager.indexName:ironrhino}")
-	private String indexName;
 
 	private Map<String, Class> typeClassMapping;
 
@@ -79,15 +77,6 @@ public class IndexManagerImpl implements IndexManager {
 	private EntityManager entityManager;
 
 	private ObjectMapper objectMapper;
-
-	@Override
-	public String getIndexName() {
-		return indexName;
-	}
-
-	public void setIndexName(String indexName) {
-		this.indexName = indexName;
-	}
 
 	@PostConstruct
 	public void init() {
@@ -445,40 +434,48 @@ public class IndexManagerImpl implements IndexManager {
 	}
 
 	@Override
+	public String determineIndexName(String type) {
+		return INDEX_PREFIX + type.toLowerCase();
+	}
+
+	@Override
 	public Object searchHitToEntity(SearchHit sh) throws Exception {
 		return objectMapper.readValue(sh.sourceAsString(), typeToClass(sh.getType()));
 	}
 
 	@Override
 	public ListenableActionFuture<IndexResponse> index(Persistable entity) {
-		return client.prepareIndex(getIndexName(), classToType(ReflectionUtils.getActualClass(entity)),
-				String.valueOf(entity.getId())).setSource(entityToDocument(entity)).execute();
+		String type = classToType(ReflectionUtils.getActualClass(entity));
+		return client.prepareIndex(determineIndexName(type), type, String.valueOf(entity.getId()))
+				.setSource(entityToDocument(entity)).execute();
 	}
 
 	@Override
 	public ListenableActionFuture<DeleteResponse> delete(Persistable entity) {
-		return client.prepareDelete(getIndexName(), classToType(ReflectionUtils.getActualClass(entity)),
-				String.valueOf(entity.getId())).execute();
+		String type = classToType(ReflectionUtils.getActualClass(entity));
+		return client.prepareDelete(determineIndexName(type), type, String.valueOf(entity.getId())).execute();
 	}
 
 	private void initialize() {
 		IndicesAdminClient adminClient = client.admin().indices();
-		try {
-			IndicesExistsResponse ies = adminClient.exists(new IndicesExistsRequest(getIndexName())).get();
-			if (!ies.isExists())
-				adminClient.create(new CreateIndexRequest(getIndexName())).get();
-		} catch (Exception e) {
-			logger.error(e.getMessage(), e);
-		}
 		for (Map.Entry<Class, Map<String, Object>> entry : schemaMapping.entrySet()) {
 			HashMap<String, Map<String, Object>> map = new HashMap<>();
-			map.put(classToType(entry.getKey()), entry.getValue());
+			String type = classToType(entry.getKey());
+			try {
+				IndicesExistsResponse ies = adminClient.exists(new IndicesExistsRequest(determineIndexName(type)))
+						.get();
+				if (!ies.isExists())
+					adminClient.create(new CreateIndexRequest(determineIndexName(type))).get();
+			} catch (Exception e) {
+				logger.error(e.getMessage(), e);
+			}
+			map.put(type, entry.getValue());
 			String mapping = JsonUtils.toJson(map);
 			if (logger.isDebugEnabled())
 				logger.debug("Mapping {} : {}", entry.getKey(), mapping);
 			try {
-				adminClient.preparePutMapping(getIndexName()).setType(classToType(entry.getKey())).setSource(mapping)
-						.setUpdateAllTypes(true).execute().get();
+				adminClient.preparePutMapping(determineIndexName(type)).setType(type).setSource(mapping).execute()
+						.get();
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 			}
@@ -492,12 +489,16 @@ public class IndexManagerImpl implements IndexManager {
 		if (lockService.tryLock(lockName)) {
 			try {
 				IndicesAdminClient adminClient = client.admin().indices();
-				try {
-					IndicesExistsResponse ies = adminClient.exists(new IndicesExistsRequest(getIndexName())).get();
-					if (ies.isExists())
-						adminClient.delete(new DeleteIndexRequest(getIndexName())).get();
-				} catch (Exception e) {
-					logger.error(e.getMessage(), e);
+				for (Map.Entry<Class, Map<String, Object>> entry : schemaMapping.entrySet()) {
+					String type = classToType(entry.getKey());
+					try {
+						IndicesExistsResponse ies = adminClient
+								.exists(new IndicesExistsRequest(determineIndexName(type))).get();
+						if (!ies.isExists())
+							adminClient.delete(new DeleteIndexRequest(determineIndexName(type))).get();
+					} catch (Exception e) {
+						logger.error(e.getMessage(), e);
+					}
 				}
 				initialize();
 				for (Class c : schemaMapping.keySet())
@@ -519,9 +520,8 @@ public class IndexManagerImpl implements IndexManager {
 			indexed.addAndGet(entityArray.length);
 			for (Object obj : entityArray) {
 				Persistable p = (Persistable) obj;
-				bulkRequest
-						.add(client.prepareIndex(getIndexName(), classToType(p.getClass()), String.valueOf(p.getId()))
-								.setSource(entityToDocument(p)));
+				bulkRequest.add(client.prepareIndex(determineIndexName(type), type, String.valueOf(p.getId()))
+						.setSource(entityToDocument(p)));
 			}
 			try {
 				if (bulkRequest.numberOfActions() > 0) {
