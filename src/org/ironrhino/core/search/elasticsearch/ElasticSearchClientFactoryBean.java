@@ -15,7 +15,7 @@ import org.elasticsearch.common.settings.Settings;
 import org.elasticsearch.common.transport.InetSocketTransportAddress;
 import org.elasticsearch.env.Environment;
 import org.elasticsearch.node.Node;
-import org.elasticsearch.node.internal.InternalSettingsPreparer;
+import org.elasticsearch.node.InternalSettingsPreparer;
 import org.elasticsearch.plugin.analysis.mmseg.AnalysisMMsegPlugin;
 import org.elasticsearch.transport.client.PreBuiltTransportClient;
 import org.ironrhino.core.util.AppInfo;

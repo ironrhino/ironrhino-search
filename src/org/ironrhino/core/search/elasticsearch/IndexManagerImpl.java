@@ -29,6 +29,7 @@ import org.elasticsearch.action.index.IndexResponse;
 import org.elasticsearch.client.Client;
 import org.elasticsearch.client.IndicesAdminClient;
 import org.elasticsearch.client.node.NodeClient;
+import org.elasticsearch.common.xcontent.XContentType;
 import org.elasticsearch.search.SearchHit;
 import org.ironrhino.core.coordination.LockService;
 import org.ironrhino.core.metadata.Trigger;
@@ -440,14 +441,14 @@ public class IndexManagerImpl implements IndexManager {
 
 	@Override
 	public Object searchHitToEntity(SearchHit sh) throws Exception {
-		return objectMapper.readValue(sh.sourceAsString(), typeToClass(sh.getType()));
+		return objectMapper.readValue(sh.getSourceAsString(), typeToClass(sh.getType()));
 	}
 
 	@Override
 	public ListenableActionFuture<IndexResponse> index(Persistable entity) {
 		String type = classToType(ReflectionUtils.getActualClass(entity));
 		return client.prepareIndex(determineIndexName(type), type, String.valueOf(entity.getId()))
-				.setSource(entityToDocument(entity)).execute();
+				.setSource(entityToDocument(entity), XContentType.JSON).execute();
 	}
 
 	@Override
@@ -474,8 +475,8 @@ public class IndexManagerImpl implements IndexManager {
 			if (logger.isDebugEnabled())
 				logger.debug("Mapping {} : {}", entry.getKey(), mapping);
 			try {
-				adminClient.preparePutMapping(determineIndexName(type)).setType(type).setSource(mapping).execute()
-						.get();
+				adminClient.preparePutMapping(determineIndexName(type)).setType(type)
+						.setSource(mapping, XContentType.JSON).execute().get();
 			} catch (Exception e) {
 				logger.error(e.getMessage(), e);
 			}
@@ -521,7 +522,7 @@ public class IndexManagerImpl implements IndexManager {
 			for (Object obj : entityArray) {
 				Persistable p = (Persistable) obj;
 				bulkRequest.add(client.prepareIndex(determineIndexName(type), type, String.valueOf(p.getId()))
-						.setSource(entityToDocument(p)));
+						.setSource(entityToDocument(p), XContentType.JSON));
 			}
 			try {
 				if (bulkRequest.numberOfActions() > 0) {
