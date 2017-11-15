@@ -18,13 +18,11 @@
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/commons-pool2-2.4.2.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/disruptor-3.3.6.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/dom4j-1.6.1.jar"/>
-	<classpathentry kind="lib" path="webapp/WEB-INF/lib/ehcache-core-2.6.11.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/elasticsearch-5.5.1.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/elasticsearch-analysis-mmseg-5.4.1.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/elasticsearch-transport-5.5.1.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/freemarker-2.3.26.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/fst-2.48.jar"/>
-	<classpathentry kind="lib" path="webapp/WEB-INF/lib/guava-18.0.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/h2-1.4.192.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/hibernate-commons-annotations-5.0.1.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/hibernate-core-5.1.5.jar"/>
@@ -44,7 +42,6 @@
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/jackson-core-2.8.9.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/jackson-databind-2.8.9.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/jackson-dataformat-smile-2.8.6.jar"/>
-	<classpathentry kind="lib" path="webapp/WEB-INF/lib/javamail-1.5.4.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/javassist-3.20.0.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/jboss-logging-3.3.0.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/jboss-logging-annotations-2.0.0.jar"/>
@@ -70,7 +67,7 @@
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/lucene-spatial-6.6.0.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/lucene-suggest-6.6.0.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/mmseg4j-core-1.9.1.jar"/>
-	<classpathentry kind="lib" path="webapp/WEB-INF/lib/mvel2-2.2.7.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/mvel2-2.3.2.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/mysql-connector-java-5.1.42.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/objenesis-2.6.jar"/>
 	<classpathentry kind="lib" path="webapp/WEB-INF/lib/ognl-3.1.14.jar"/>
@@ -115,5 +112,8 @@
 	<classpathentry kind="lib" path="lib/spring-test-4.3.7.jar"/>
 	<classpathentry kind="lib" path="lib/websocket-api-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/yuicompressor.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/jaxb-api-2.3.0.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/cache2k-api-1.0.1.jar"/>
+	<classpathentry kind="lib" path="webapp/WEB-INF/lib/cache2k-core-1.0.1.jar"/>
 	<classpathentry kind="output" path="webapp/WEB-INF/classes"/>
 </classpath>
