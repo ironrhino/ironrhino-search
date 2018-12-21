@@ -16,7 +16,6 @@ import java.util.concurrent.atomic.AtomicLong;
 import javax.annotation.PostConstruct;
 
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.action.ActionListener;
 import org.elasticsearch.action.ListenableActionFuture;
 import org.elasticsearch.action.admin.indices.create.CreateIndexRequest;
 import org.elasticsearch.action.admin.indices.delete.DeleteIndexRequest;
@@ -489,6 +488,8 @@ public class IndexManagerImpl implements IndexManager {
 		String lockName = "indexManager.rebuild()";
 		if (lockService.tryLock(lockName)) {
 			try {
+				logger.info("rebuild started");
+				long time = System.currentTimeMillis();
 				IndicesAdminClient adminClient = client.admin().indices();
 				for (Map.Entry<Class, Map<String, Object>> entry : schemaMapping.entrySet()) {
 					String type = classToType(entry.getKey());
@@ -504,7 +505,7 @@ public class IndexManagerImpl implements IndexManager {
 				initialize();
 				for (Class c : schemaMapping.keySet())
 					indexAll(classToType(c));
-				logger.info("rebuild completed");
+				logger.info("rebuild completed in {} ms", System.currentTimeMillis() - time);
 			} finally {
 				lockService.unlock(lockName);
 			}
@@ -515,8 +516,9 @@ public class IndexManagerImpl implements IndexManager {
 	public void indexAll(String type) {
 		Class clz = typeToClass(type);
 		entityManager.setEntityClass(clz);
+		long time = System.currentTimeMillis();
 		final AtomicLong indexed = new AtomicLong();
-		entityManager.iterate(20, (entityArray, session) -> {
+		entityManager.iterate(500, (entityArray, session) -> {
 			BulkRequestBuilder bulkRequest = client.prepareBulk();
 			indexed.addAndGet(entityArray.length);
 			for (Object obj : entityArray) {
@@ -526,27 +528,15 @@ public class IndexManagerImpl implements IndexManager {
 			}
 			try {
 				if (bulkRequest.numberOfActions() > 0) {
-					ListenableActionFuture<BulkResponse> br = bulkRequest.execute();
-					br.addListener(bulkResponseActionListener);
+					BulkResponse br = bulkRequest.execute().get();
+					if (br.hasFailures())
+						logger.error(br.buildFailureMessage());
 				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
 		});
-		logger.info("indexed {} for {}", indexed.get(), type);
+		logger.info("indexed {} in {} ms for {}", indexed.get(), System.currentTimeMillis() - time, type);
 	}
-
-	private ActionListener<BulkResponse> bulkResponseActionListener = new ActionListener<BulkResponse>() {
-		@Override
-		public void onResponse(BulkResponse br) {
-			if (br.hasFailures())
-				logger.error(br.buildFailureMessage());
-		}
-
-		@Override
-		public void onFailure(Exception e) {
-			logger.error(e.getMessage(), e);
-		}
-	};
 
 }
