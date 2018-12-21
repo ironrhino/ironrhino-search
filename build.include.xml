@@ -5,13 +5,37 @@
 	<property name="dist.jar-sources.name" value="ironrhino-search-${version}-sources.jar" />
 	<property name="dist.jar.includes" value="org/ironrhino/core/search/,resources/spring/applicationContext-search.xml" />
 
+	<property name="elasticsearch.version" value="5.5.1" />
+	<property name="lucene.version" value="6.6.0" />
+
 	<target name="pre-jar">
 		<delete file="${target.dir}/${dist.jar.name}" />
 		<delete file="${target.dir}/${dist.jar-sources.name}" />
 	</target>
 
 	<target name="post-jar">
-		<jar jarfile="${target.dir}/${dist.jar.name}" basedir="${classes.dir}" includes="${dist.jar.includes}" />
+		<zip destfile="${target.dir}/${dist.jar.name}" duplicate="preserve">
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/elasticsearch-transport-${elasticsearch.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/elasticsearch-analysis-mmseg-5.4.1.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/mmseg4j-core-1.9.1.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/joda-time-2.9.5.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/hppc-0.7.1.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/jna-4.4.0.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/t-digest-3.0.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-analyzers-common-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-core-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-highlighter-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-join-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-memory-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-misc-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-queries-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-queryparser-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-sandbox-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-spatial-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/lucene-suggest-${lucene.version}.jar" />
+			<zipfileset src="${webapp.dir}/WEB-INF/lib/elasticsearch-${elasticsearch.version}.jar" />
+			<fileset dir="${classes.dir}" includes="${dist.jar.includes}" />
+		</zip>
 		<jar jarfile="${target.dir}/${dist.jar-sources.name}" basedir="${src.dir}" includes="${dist.jar.includes}" />
 	</target>
 
