@@ -3,5 +3,3 @@ target
 test/classes
 webapp/WEB-INF/classes
 webapp/WEB-INF/lib
-.svnignore
-.DS_Store
